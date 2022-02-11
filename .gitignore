@@ -1,7 +1,5 @@
 Polevpnmobile.framework
 .DS_Store
-polevpnmobile/polevpnmobile-sources.jar
-polevpnmobile/polevpnmobile.aar
+polevpnmobile-sources.jar
+polevpnmobile.aar
 *.log
-poleclient
-polevpn_client
