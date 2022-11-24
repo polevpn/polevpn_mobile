@@ -1,8 +1,6 @@
 package polevpnmobile
 
 import (
-	"encoding/base64"
-	"os"
 	"sync"
 
 	"github.com/polevpn/anyvalue"
@@ -38,48 +36,23 @@ type PoleVPN struct {
 	handler PoleVPNEventHandler
 	client  *core.PoleVpnClient
 	mutex   *sync.Mutex
-	mode    bool
-	localip string
 	state   int
-}
-
-type logHandler struct {
-}
-
-var externLogHandler PoleVPNLogHandler
-
-func (lh *logHandler) Write(data []byte) (int, error) {
-
-	if externLogHandler != nil {
-		externLogHandler.OnWrite(string(data))
-		return len(data), nil
-	} else {
-		return os.Stderr.Write(data)
-	}
-}
-
-func (lh *logHandler) Flush() {
-
-	if externLogHandler != nil {
-		externLogHandler.OnFlush()
-	} else {
-		os.Stderr.Sync()
-	}
+	ip      string
 }
 
 func init() {
 
-	plog = elog.NewEasyLogger("INFO", false, 1, &logHandler{})
+	plog = elog.GetLogger()
 	core.SetLogger(plog)
 	defer plog.Flush()
 }
 
-func SetLogLevel(level string) {
-	plog.SetLogLevel(level)
+func SetLogPath(path string) {
+	plog.SetLogPath(path)
 }
 
-func SetLogHandler(handler PoleVPNLogHandler) {
-	externLogHandler = handler
+func SetLogLevel(level string) {
+	plog.SetLogLevel(level)
 }
 
 func NewPoleVPN() *PoleVPN {
@@ -92,6 +65,8 @@ func (pvm *PoleVPN) eventHandler(event int, client *core.PoleVpnClient, av *anyv
 	case core.CLIENT_EVENT_ADDRESS_ALLOCED:
 		{
 			if pvm.handler != nil {
+				pvm.ip = av.Get("ip").AsStr()
+
 				pvm.handler.OnAllocEvent(av.Get("ip").AsStr(), av.Get("dns").AsStr())
 			}
 		}
@@ -141,16 +116,6 @@ func (pvm *PoleVPN) Start(endpoint string, user string, pwd string, sni string) 
 		return
 	}
 
-	encrypted, _ := base64.StdEncoding.DecodeString(endpoint)
-	originEndpiont, _ := core.AesDecrypt(encrypted, core.AesKey)
-
-	if originEndpiont == nil {
-		if pvm.handler != nil {
-			pvm.handler.OnErrorEvent("start", "invalid endpoint")
-		}
-		return
-	}
-
 	client, err := core.NewPoleVpnClient()
 	if err != nil {
 		if pvm.handler != nil {
@@ -162,7 +127,7 @@ func (pvm *PoleVPN) Start(endpoint string, user string, pwd string, sni string) 
 	pvm.client = client
 	pvm.state = POLEVPN_MOBILE_STARTING
 	pvm.client.SetEventHandler(pvm.eventHandler)
-	go pvm.client.Start(string(originEndpiont), user, pwd, sni, true)
+	go pvm.client.Start(endpoint, user, pwd, sni, true)
 }
 
 func (pvm *PoleVPN) Stop() {
@@ -175,18 +140,32 @@ func (pvm *PoleVPN) Stop() {
 
 }
 
-func (pvm *PoleVPN) SetLocalIP(ip string) {
-	if pvm.state == POLEVPN_MOBILE_STARTED || pvm.state == POLEVPN_MOBILE_STARTING {
-		//pvm.client.SetLocalIP(ip)
+func (pvm *PoleVPN) GetUpBytes() int64 {
+
+	if pvm.client == nil {
+		return 0
 	}
-	pvm.localip = ip
+
+	up, _ := pvm.client.GetUpDownBytes()
+	return int64(up)
 }
 
-func (pvm *PoleVPN) SetRouteMode(mode bool) {
-	if pvm.state == POLEVPN_MOBILE_STARTED || pvm.state == POLEVPN_MOBILE_STARTING {
-		//pvm.client.SetRouteMode(mode)
+func (pvm *PoleVPN) GetDownBytes() int64 {
+
+	if pvm.client == nil {
+		return 0
 	}
-	pvm.mode = mode
+
+	_, down := pvm.client.GetUpDownBytes()
+	return int64(down)
+}
+
+func (pvm *PoleVPN) GetRemoteIP() string {
+	return pvm.client.GetRemoteIP()
+}
+
+func (pvm *PoleVPN) GetLocalIP() string {
+	return pvm.ip
 }
 
 func (pvm *PoleVPN) GetState() int {
