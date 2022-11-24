@@ -20,7 +20,9 @@ func getTimeNowDate() string {
 	return time.Now().Format("2006-01-02")
 }
 
-func GetRouteIpsFromDomain(domains []string) []string {
+func GetRouteIpsFromDomain(domainStr string) string {
+
+	domains := strings.Split(domainStr, "\n")
 
 	ips := make([]string, 0)
 	for _, domain := range domains {
@@ -35,5 +37,5 @@ func GetRouteIpsFromDomain(domains []string) []string {
 			}
 		}
 	}
-	return ips
+	return strings.Join(ips, "\n")
 }

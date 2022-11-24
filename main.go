@@ -22,7 +22,7 @@ type PoleVPNEventHandler interface {
 	OnStartedEvent()
 	OnStoppedEvent()
 	OnErrorEvent(errtype string, errmsg string)
-	OnAllocEvent(ip string, dns string)
+	OnAllocEvent(ip string, dns string, routes string)
 	OnReconnectingEvent()
 	OnReconnectedEvent()
 }
@@ -38,6 +38,8 @@ type PoleVPN struct {
 	mutex   *sync.Mutex
 	state   int
 	ip      string
+	dns     string
+	routes  string
 }
 
 func init() {
@@ -66,8 +68,11 @@ func (pvm *PoleVPN) eventHandler(event int, client *core.PoleVpnClient, av *anyv
 		{
 			if pvm.handler != nil {
 				pvm.ip = av.Get("ip").AsStr()
+				pvm.dns = av.Get("dns").AsStr()
+				routes, _ := av.Get("route").EncodeJson()
+				pvm.routes = string(routes)
 
-				pvm.handler.OnAllocEvent(av.Get("ip").AsStr(), av.Get("dns").AsStr())
+				pvm.handler.OnAllocEvent(av.Get("ip").AsStr(), av.Get("dns").AsStr(), pvm.routes)
 			}
 		}
 	case core.CLIENT_EVENT_STOPPED:
@@ -108,7 +113,7 @@ func (pvm *PoleVPN) Attach(fd int) {
 	pvm.client.AttachTunDevice(tundevice)
 }
 
-func (pvm *PoleVPN) Start(endpoint string, user string, pwd string, sni string) {
+func (pvm *PoleVPN) Start(endpoint string, user string, pwd string, sni string, skipSSLVerify bool) {
 
 	pvm.mutex.Lock()
 	defer pvm.mutex.Unlock()
@@ -127,7 +132,7 @@ func (pvm *PoleVPN) Start(endpoint string, user string, pwd string, sni string) 
 	pvm.client = client
 	pvm.state = POLEVPN_MOBILE_STARTING
 	pvm.client.SetEventHandler(pvm.eventHandler)
-	go pvm.client.Start(endpoint, user, pwd, sni, true)
+	go pvm.client.Start(endpoint, user, pwd, sni, skipSSLVerify)
 }
 
 func (pvm *PoleVPN) Stop() {
@@ -158,6 +163,10 @@ func (pvm *PoleVPN) GetDownBytes() int64 {
 
 	_, down := pvm.client.GetUpDownBytes()
 	return int64(down)
+}
+
+func (pvm *PoleVPN) GetRoutes() string {
+	return pvm.routes
 }
 
 func (pvm *PoleVPN) GetRemoteIP() string {
