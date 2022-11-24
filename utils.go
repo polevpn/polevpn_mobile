@@ -40,7 +40,7 @@ func GetRouteIpsFromDomain(domainStr string) string {
 	return strings.Join(ips, "\n")
 }
 
-func Log(level string, msg ...string) {
+func Log(level string, msg string) {
 	if level == "debug" {
 		plog.Debug(msg)
 	} else if level == "info" {
