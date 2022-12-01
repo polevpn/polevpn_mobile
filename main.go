@@ -110,6 +110,15 @@ func (pvm *PoleVPN) Attach(fd int) {
 		return
 	}
 	tundevice := core.AttachTunDevice(fd)
+
+	pvm.client.AttachTunDevice(tundevice)
+}
+
+func (pvm *PoleVPN) AttachIos(fd int) {
+	if pvm.state != POLEVPN_MOBILE_STARTED {
+		return
+	}
+	tundevice := core.AttachTunDeviceIos(fd)
 	pvm.client.AttachTunDevice(tundevice)
 }
 
