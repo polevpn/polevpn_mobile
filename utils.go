@@ -50,4 +50,5 @@ func Log(level string, msg string) {
 	} else if level == "error" {
 		plog.Error(msg)
 	}
+	plog.Flush()
 }
