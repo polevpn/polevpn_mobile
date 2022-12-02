@@ -40,6 +40,17 @@ func GetRouteIpsFromDomain(domainStr string) string {
 	return strings.Join(ips, "\n")
 }
 
+func GetSubNetMask(cidr string) string {
+
+	_, network, err := net.ParseCIDR(cidr)
+
+	if err != nil {
+		return ""
+	}
+	mask := net.IPv4(network.Mask[0], network.Mask[1], network.Mask[2], network.Mask[3])
+	return mask.String()
+}
+
 func Log(level string, msg string) {
 	if level == "debug" {
 		plog.Debug(msg)
