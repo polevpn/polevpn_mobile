@@ -1,6 +1,7 @@
 package polevpnmobile
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/polevpn/anyvalue"
@@ -34,7 +35,7 @@ type PoleVPNLogHandler interface {
 
 type PoleVPN struct {
 	handler PoleVPNEventHandler
-	client  *core.PoleVpnClient
+	client  core.PoleVpnClient
 	mutex   *sync.Mutex
 	state   int
 	ip      string
@@ -61,7 +62,7 @@ func NewPoleVPN() *PoleVPN {
 	return &PoleVPN{mutex: &sync.Mutex{}, state: POLEVPN_MOBILE_INIT}
 }
 
-func (pvm *PoleVPN) eventHandler(event int, client *core.PoleVpnClient, av *anyvalue.AnyValue) {
+func (pvm *PoleVPN) eventHandler(event int, client core.PoleVpnClient, av *anyvalue.AnyValue) {
 
 	switch event {
 	case core.CLIENT_EVENT_ADDRESS_ALLOCED:
@@ -129,8 +130,15 @@ func (pvm *PoleVPN) Start(endpoint string, user string, pwd string, sni string, 
 	if pvm.state != POLEVPN_MOBILE_INIT && pvm.state != POLEVPN_MOBILE_STOPPED {
 		return
 	}
+	var err error
+	var client core.PoleVpnClient
 
-	client, err := core.NewPoleVpnClient()
+	if strings.HasPrefix(endpoint, "proxy://") {
+		client, err = core.NewPoleVpnClientProxy()
+	} else {
+		client, err = core.NewPoleVpnClientVLAN()
+	}
+
 	if err != nil {
 		if pvm.handler != nil {
 			pvm.handler.OnErrorEvent("start", err.Error())
