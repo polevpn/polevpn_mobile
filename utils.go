@@ -40,6 +40,57 @@ func GetRouteIpsFromDomain(domainStr string) string {
 	return strings.Join(ips, "\n")
 }
 
+func GetLocalIP() string {
+
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+
+	wifiIp := ""
+	cellerIp := ""
+
+	for _, i := range interfaces {
+		byName, err := net.InterfaceByName(i.Name)
+		if err != nil {
+			return ""
+		}
+		addresses, err := byName.Addrs()
+		if err != nil {
+			return ""
+		}
+		for _, v := range addresses {
+			if strings.Contains(v.String(), ":") {
+				continue
+			}
+
+			if strings.Contains(v.String(), "169.") || strings.Contains(v.String(), "127.") {
+				continue
+			}
+
+			ip, _, err := net.ParseCIDR(v.String())
+			if err != nil {
+				continue
+			}
+
+			if i.Name == "pdp_ip0" {
+				cellerIp = ip.String()
+			}
+
+			if i.Name == "en0" {
+				wifiIp = ip.String()
+			}
+
+		}
+	}
+
+	if wifiIp != "" {
+		return wifiIp
+	} else {
+		return cellerIp
+	}
+}
+
 func GetSubNetMask(cidr string) string {
 
 	_, network, err := net.ParseCIDR(cidr)
