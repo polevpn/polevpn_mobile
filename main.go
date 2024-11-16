@@ -1,6 +1,7 @@
 package polevpnmobile
 
 import (
+	"runtime/debug"
 	"strings"
 	"sync"
 
@@ -59,6 +60,7 @@ func SetLogLevel(level string) {
 }
 
 func NewPoleVPN() *PoleVPN {
+	debug.SetMemoryLimit(1024 * 1024 * 10)
 	return &PoleVPN{mutex: &sync.Mutex{}, state: POLEVPN_MOBILE_INIT}
 }
 
