@@ -7,7 +7,7 @@ toolchain go1.23.1
 require (
 	github.com/polevpn/anyvalue v1.0.6
 	github.com/polevpn/elog v1.1.3
-	github.com/polevpn/polevpn_core v1.2.38
+	github.com/polevpn/polevpn_core v1.2.39
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.2
 )
@@ -22,7 +22,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	github.com/onsi/ginkgo/v2 v2.9.5 // indirect
 	github.com/polevpn/h3conn v1.0.20 // indirect
-	github.com/polevpn/netstack v1.10.16 // indirect
+	github.com/polevpn/netstack v1.10.17 // indirect
 	github.com/polevpn/water v1.0.4 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.47.0 // indirect
@@ -31,6 +31,7 @@ require (
 	go.uber.org/mock v0.4.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
+	golang.org/x/mobile v0.0.0-20241108191957-fa514ef75a0f // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sync v0.9.0 // indirect
