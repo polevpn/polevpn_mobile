@@ -6,8 +6,8 @@ toolchain go1.23.1
 
 require (
 	github.com/polevpn/anyvalue v1.0.6
-	github.com/polevpn/elog v1.1.3
-	github.com/polevpn/polevpn_core v1.2.40
+	github.com/polevpn/elog v1.1.5
+	github.com/polevpn/polevpn_core v1.2.44
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.2
 )

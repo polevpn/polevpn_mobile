@@ -2,8 +2,11 @@ package polevpnmobile
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
+)
+
+const (
+	MAX_LOG_LINE_READ = 200
 )
 
 func AddAccessServer(reqs string) string {
@@ -119,12 +122,12 @@ func GetAllLogs() string {
 
 	logFilePath := plog.GetLogPath() + string(os.PathSeparator) + getAppName() + "-" + getTimeNowDate() + ".log"
 
-	logData, err := ioutil.ReadFile(logFilePath)
+	logData, err := ReadTail(logFilePath, MAX_LOG_LINE_READ)
 
 	if err != nil {
 		plog.Error(err)
 		return ""
 	}
 
-	return string(logData)
+	return logData
 }

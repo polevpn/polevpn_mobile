@@ -31,7 +31,6 @@ type PoleVPNEventHandler interface {
 
 type PoleVPNLogHandler interface {
 	OnWrite(data string)
-	OnFlush()
 }
 
 type PoleVPN struct {
@@ -44,9 +43,27 @@ type PoleVPN struct {
 	routes  string
 }
 
+type LogCallback struct {
+	logHandler PoleVPNLogHandler
+}
+
+func (lc *LogCallback) Write(data []byte) (int, error) {
+	if lc.logHandler != nil {
+		lc.logHandler.OnWrite(string(data))
+	}
+	return len(data), nil
+}
+
+func (lc *LogCallback) SetLogHandler(handler PoleVPNLogHandler) {
+	lc.logHandler = handler
+}
+
+var logCallback LogCallback
+
 func init() {
 
 	plog = elog.GetLogger()
+	plog.SetCallback(&logCallback)
 	core.SetLogger(plog)
 	defer plog.Flush()
 }
@@ -57,6 +74,10 @@ func SetLogPath(path string) {
 
 func SetLogLevel(level string) {
 	plog.SetLogLevel(level)
+}
+
+func SetLogHandler(handler PoleVPNLogHandler) {
+	logCallback.SetLogHandler(handler)
 }
 
 func NewPoleVPN() *PoleVPN {

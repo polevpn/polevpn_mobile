@@ -1,6 +1,7 @@
 package polevpnmobile
 
 import (
+	"io"
 	"net"
 	"os"
 	"strings"
@@ -113,4 +114,73 @@ func Log(level string, msg string) {
 		plog.Error(msg)
 	}
 	plog.Flush()
+}
+
+func ReadTail(filename string, num int) (string, error) {
+
+	f, err := os.Open(filename)
+
+	if err != nil {
+		return "", err
+	}
+
+	i, err := f.Stat()
+
+	if err != nil {
+		return "", err
+	}
+
+	lines := make([][]byte, 0)
+	lineBuf := make([]byte, 4096)
+	var offset int64 = 0
+	buf := make([]byte, 1)
+	index := 0
+	count := 0
+	size := 0
+
+	for {
+
+		offset -= 1
+
+		f.Seek(int64(offset), io.SeekEnd)
+		_, err := f.Read(buf)
+		if err != nil {
+			break
+		}
+		size++
+		if index == len(lineBuf)-1 {
+			buf[0] = '\n'
+		}
+		lineBuf[index] = buf[0]
+		index++
+		if buf[0] == '\n' {
+			lines = append(lines, lineBuf[:index])
+			index = 0
+			lineBuf = make([]byte, 4096)
+			count++
+			if count == num {
+				break
+			}
+		}
+
+		if -offset >= i.Size() {
+			break
+		}
+	}
+
+	if index > 0 {
+		lines = append(lines, lineBuf[:index])
+	}
+
+	out := make([]byte, size)
+	index = 0
+	for i := len(lines) - 1; i > -1; i-- {
+		line := lines[i]
+		for j := len(line) - 1; j > -1; j-- {
+			out[index] = line[j]
+			index++
+		}
+	}
+
+	return string(out), nil
 }
